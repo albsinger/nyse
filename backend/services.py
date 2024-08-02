@@ -1,29 +1,23 @@
-import requests
 import os
+import finnhub
+
 
 class StockQuoteService:
-    api_key = os.getenv('API_KEY')
-    base_url = 'https://www.alphavantage.co/query'
+
+    finnhub_client = finnhub.Client(api_key="cqmeim9r01qjs6oc0s60cqmeim9r01qjs6oc0s6g")
 
     @classmethod
-    def get_quote(cls, symbol):
-        params = {
-            'function': 'GLOBAL_QUOTE',
-            'symbol': symbol,
-            'apikey': cls.api_key
-        }
-        
+    def get_quote(cls, symbol): 
         try:
-            response = requests.get(cls.base_url, params=params)
-            data = response.json()
+            data = cls.finnhub_client.quote(symbol)
 
-            if 'Global Quote' in data and data['Global Quote']:
-                price = data['Global Quote']['05. price']
-                formatted_price = f"{float(price):,.2f}"
+            if 'c' in data and data['c']:
+                current_price = data['c']
+                formatted_price = f"{float(current_price):,.2f}"
             else:
                 raise ValueError(f"Invalid data received for {symbol}: {data}")
             
-        except requests.RequestException as e:
+        except Exception as e:
             raise Exception(f"Error fetching stock data: {e}")
         
         return formatted_price

@@ -89,7 +89,24 @@ function updatePortfolioTable(portfolio) {
             <td>$${stock.price}</td>
             <td>${stock.shares}</td>
             <td>$${(stock.price * stock.shares)}</td>
+            <td><button class="btn btn-danger btn-sm" onclick="removeStock('${stock.symbol}')">Remove</button></td>
         `;
         portfolioTable.appendChild(row);
     });
+}
+
+async function removeStock(symbol) {
+    try {
+        const response = await fetch(`/api/portfolio?symbol=${encodeURIComponent(symbol)}`, {
+            method: 'DELETE',
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to remove stock from portfolio');
+        }
+        loadPortfolio();
+    } catch (error) {
+        console.error(error);
+    }
 }

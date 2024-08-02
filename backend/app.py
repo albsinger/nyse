@@ -26,7 +26,7 @@ def search_stock():
     except Exception as e:
         raise BadRequest(str(e))
 
-@app.route('/api/portfolio', methods=['GET', 'POST', 'DELETE'])
+@app.route('/api/portfolio', methods=['GET', 'POST', 'PUT', 'DELETE'])
 def manage_portfolio():
     if request.method == 'GET':
         portfolio = StockFactory.get_portfolio_with_prices()
@@ -50,6 +50,25 @@ def manage_portfolio():
         
         db.session.commit()
         return jsonify(stock.to_dict()), 201
+    
+    elif request.method == 'PUT':
+        data = request.json
+        if not data or 'symbol' not in data:
+            raise BadRequest('Symbol is required')
+        
+        symbol = data['symbol'].upper()
+        shares = int(data['shares'])
+        stock = Stock.query.filter_by(symbol=symbol).first()
+        old_shares = stock.shares
+        new_shares = shares + old_shares
+
+        if stock:
+            stock.shares = new_shares if new_shares > 0 else 0
+            db.session.commit()
+            return jsonify(stock.to_dict()), 201
+        else:
+            raise BadRequest('Cannot execute order, stock not in portfolio')
+
     elif request.method == 'DELETE':
         symbol = request.args.get('symbol').upper()
         stock = Stock.query.filter_by(symbol=symbol).first()

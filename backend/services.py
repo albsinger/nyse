@@ -1,9 +1,7 @@
 import os
 import finnhub
 
-
 class StockQuoteService:
-
     finnhub_client = finnhub.Client(api_key="cqmeim9r01qjs6oc0s60cqmeim9r01qjs6oc0s6g")
 
     @classmethod

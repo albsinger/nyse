@@ -86,13 +86,62 @@ function updatePortfolioTable(portfolio) {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${stock.symbol}</td>
-            <td>$${stock.price}</td>
-            <td>${stock.shares}</td>
-            <td>$${(stock.price * stock.shares)}</td>
+            <td>$${Number(stock.price).toFixed(2)}</td>
+            <td id="shares-of-${stock.symbol}">${stock.shares}</td>
+            <td>$${(stock.price * stock.shares).toFixed(2)}</td>
+            <td>
+            <div class="input-group">
+            <button class="btn btn-info btn-sm" onclick="buyStock('${stock.symbol}')">Buy</button>
+            <div class="col-auto">
+            <input type="number" id="${stock.symbol}-shares-order" class="form-control" style="width: 6ch;" min="0" placeholder="0">
+            </div>
+            <button class="btn btn-warning btn-sm" onclick="sellStock('${stock.symbol}')">Sell</button>
+            </div>
+            </td>
             <td><button class="btn btn-danger btn-sm" onclick="removeStock('${stock.symbol}')">Remove</button></td>
         `;
         portfolioTable.appendChild(row);
     });
+}
+
+async function buyStock(symbol) {
+    let shares = document.getElementById(`${symbol}-shares-order`).value;
+    shares = shares ? shares : 0; 
+    const buyOrder = {symbol: symbol, shares: shares}; 
+    executeOrder(buyOrder); 
+}
+
+async function sellStock(symbol) {
+    let shares = document.getElementById(`${symbol}-shares-order`).value;
+    console.log(shares);
+    shares = shares ? shares : 0; 
+    let holdings = document.getElementById(`shares-of-${symbol}`).innerText; 
+    holdings = holdings ? holdings : 0; 
+    const totalOrder = holdings - shares > 0 ? shares : holdings; 
+    const negateOrder = -Number(totalOrder); 
+    const sellOrder = {symbol: symbol, shares: negateOrder}; 
+    executeOrder(sellOrder); 
+}
+
+async function executeOrder(order) {
+    try {
+        const response = await fetch('/api/portfolio', 
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(order)
+            }
+        );
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to remove stock from portfolio');
+        }
+        loadPortfolio();
+    } catch (error) {
+        console.error(error);
+    }
 }
 
 async function removeStock(symbol) {
@@ -100,7 +149,6 @@ async function removeStock(symbol) {
         const response = await fetch(`/api/portfolio?symbol=${encodeURIComponent(symbol)}`, {
             method: 'DELETE',
         });
-
         if (!response.ok) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Failed to remove stock from portfolio');

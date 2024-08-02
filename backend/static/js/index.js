@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     searchButton.addEventListener('click', searchStock);
     addButton.addEventListener('click', addToPortfolio);
     loadPortfolio();
+    setInterval(loadPortfolio, 5000);
 });
 
 async function searchStock() {
@@ -32,7 +33,6 @@ async function searchStock() {
         const data = await response.json();
         stockTicker.innerText = data.symbol;
         stockPrice.innerText =  `$${data.price}`;
-        console.log(`${data.symbol}: $${data.price}`);
     } catch (error) {
         displayError("Failed to fetch stock data");
         console.error(error);
@@ -90,13 +90,13 @@ function updatePortfolioTable(portfolio) {
             <td id="shares-of-${stock.symbol}">${stock.shares}</td>
             <td>$${(stock.price * stock.shares).toFixed(2)}</td>
             <td>
-            <div class="input-group">
-            <button class="btn btn-info btn-sm" onclick="buyStock('${stock.symbol}')">Buy</button>
-            <div class="col-auto">
-            <input type="number" id="${stock.symbol}-shares-order" class="form-control" style="width: 6ch;" min="0" placeholder="0">
-            </div>
-            <button class="btn btn-warning btn-sm" onclick="sellStock('${stock.symbol}')">Sell</button>
-            </div>
+                <div class="input-group">
+                    <button class="btn btn-info btn-sm" onclick="buyStock('${stock.symbol}')">Buy</button>
+                        <div class="col-auto">
+                            <input type="number" id="${stock.symbol}-shares-order" class="form-control" style="width: 6ch;" min="0" placeholder="0">
+                        </div>
+                    <button class="btn btn-warning btn-sm" onclick="sellStock('${stock.symbol}')">Sell</button>
+                </div>
             </td>
             <td><button class="btn btn-danger btn-sm" onclick="removeStock('${stock.symbol}')">Remove</button></td>
         `;
@@ -113,7 +113,6 @@ async function buyStock(symbol) {
 
 async function sellStock(symbol) {
     let shares = document.getElementById(`${symbol}-shares-order`).value;
-    console.log(shares);
     shares = shares ? shares : 0; 
     let holdings = document.getElementById(`shares-of-${symbol}`).innerText; 
     holdings = holdings ? holdings : 0; 

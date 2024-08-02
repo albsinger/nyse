@@ -26,7 +26,7 @@ def search_stock():
     except Exception as e:
         raise BadRequest(str(e))
 
-@app.route('/api/portfolio', methods=['GET', 'POST'])
+@app.route('/api/portfolio', methods=['GET', 'POST', 'DELETE'])
 def manage_portfolio():
     if request.method == 'GET':
         portfolio = StockFactory.get_portfolio_with_prices()
@@ -50,6 +50,14 @@ def manage_portfolio():
         
         db.session.commit()
         return jsonify(stock.to_dict()), 201
+    elif request.method == 'DELETE':
+        symbol = request.args.get('symbol').upper()
+        stock = Stock.query.filter_by(symbol=symbol).first()
+        if stock:
+            db.session.delete(stock)
+            db.session.commit()
+            return '', 204
+
     
 
 if __name__ == '__main__':

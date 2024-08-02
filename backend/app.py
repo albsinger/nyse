@@ -1,5 +1,4 @@
 from flask import Flask, render_template, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
 from werkzeug.exceptions import BadRequest
 
 from database import db

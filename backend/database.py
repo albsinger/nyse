@@ -1,4 +1,4 @@
-# Necessary to prevent circular imports
+# Extraction necessary to prevent circular imports
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()

@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from models import Stock
 from database import db
@@ -10,8 +10,8 @@ db.init_app(app)
 
 
 @app.route('/')
-def hello_world():
-    return 'Hello, World!'
+def index():
+    return render_template('index.html')
 
 if __name__ == '__main__':
     with app.app_context():

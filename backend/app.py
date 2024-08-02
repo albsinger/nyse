@@ -38,7 +38,7 @@ def manage_portfolio():
             raise BadRequest('Symbol is required')
         
         symbol = data['symbol'].upper()
-        
+
         if Stock.query.count() >= 5:
             raise BadRequest('Portfolio is full (maximum 5 stocks)')
         

@@ -4,8 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     searchButton.addEventListener('click', searchStock);
     addButton.addEventListener('click', addToPortfolio);
-    loadPortfolio();
-    setInterval(loadPortfolio, 5000);
+    updatePortfolioTable(); 
+    setInterval(updatePortfolioValues, 5000);
 });
 
 async function searchStock() {
@@ -59,7 +59,22 @@ async function addToPortfolio() {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Failed to add stock to portfolio');
         }
-        loadPortfolio();
+        updatePortfolioTable();
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+async function removeFromPortfolio(symbol) {
+    try {
+        const response = await fetch(`/api/portfolio?symbol=${encodeURIComponent(symbol)}`, {
+            method: 'DELETE',
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to remove stock from portfolio');
+        }
+        updatePortfolioTable();
     } catch (error) {
         console.error(error);
     }
@@ -73,22 +88,23 @@ async function loadPortfolio() {
             throw new Error(errorData.error || 'Failed to load portfolio');
         }
         const portfolio = await response.json();
-        updatePortfolioTable(portfolio);
+        return portfolio; 
     } catch (error) {
         console.error(error);
     }
 }
 
-function updatePortfolioTable(portfolio) {
+async function updatePortfolioTable() {
+    portfolio = await loadPortfolio(); 
     const portfolioTable = document.getElementById('portfolio-table');
     portfolioTable.innerHTML = '';
     portfolio.forEach(stock => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${stock.symbol}</td>
-            <td>$${Number(stock.price).toFixed(2)}</td>
+            <td id="symbol-of-${stock.symbol}">${stock.symbol}</td>
+            <td id="price-of-${stock.symbol}">$${Number(stock.price).toFixed(2)}</td>
             <td id="shares-of-${stock.symbol}">${stock.shares}</td>
-            <td>$${(stock.price * stock.shares).toFixed(2)}</td>
+            <td id="value-of-${stock.symbol}">$${(stock.price * stock.shares).toFixed(2)}</td>
             <td>
                 <div class="input-group">
                     <button class="btn btn-info btn-sm" onclick="buyStock('${stock.symbol}')">Buy</button>
@@ -98,22 +114,34 @@ function updatePortfolioTable(portfolio) {
                     <button class="btn btn-warning btn-sm" onclick="sellStock('${stock.symbol}')">Sell</button>
                 </div>
             </td>
-            <td><button class="btn btn-danger btn-sm" onclick="removeStock('${stock.symbol}')">Remove</button></td>
+            <td><button class="btn btn-danger btn-sm" onclick="removeFromPortfolio('${stock.symbol}')">Remove</button></td>
         `;
         portfolioTable.appendChild(row);
     });
 }
 
+async function updatePortfolioValues(portfolio) {
+    portfolio = await loadPortfolio();
+    portfolio.forEach(stock => {
+        document.getElementById(`price-of-${stock.symbol}`).innerText = `$${Number(stock.price).toFixed(2)}`;  
+        document.getElementById(`shares-of-${stock.symbol}`).innerText = stock.shares;
+        document.getElementById(`value-of-${stock.symbol}`).innerText = '$' + (stock.price * stock.shares).toFixed(2);
+    });
+}
+
 async function buyStock(symbol) {
-    let shares = document.getElementById(`${symbol}-shares-order`).value;
+    let sharesElement = document.getElementById(`${symbol}-shares-order`);
+    let shares = sharesElement.value; 
+    sharesElement.value = 0; 
     shares = shares ? shares : 0; 
     const buyOrder = {symbol: symbol, shares: shares}; 
     executeOrder(buyOrder); 
 }
 
 async function sellStock(symbol) {
-    let shares = document.getElementById(`${symbol}-shares-order`).value;
-    shares = shares ? shares : 0; 
+    let sharesElement = document.getElementById(`${symbol}-shares-order`);
+    let shares = sharesElement.value; 
+    sharesElement.value = 0; 
     let holdings = document.getElementById(`shares-of-${symbol}`).innerText; 
     holdings = holdings ? holdings : 0; 
     const totalOrder = holdings - shares > 0 ? shares : holdings; 
@@ -137,22 +165,7 @@ async function executeOrder(order) {
             const errorData = await response.json();
             throw new Error(errorData.error || 'Failed to remove stock from portfolio');
         }
-        loadPortfolio();
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-async function removeStock(symbol) {
-    try {
-        const response = await fetch(`/api/portfolio?symbol=${encodeURIComponent(symbol)}`, {
-            method: 'DELETE',
-        });
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to remove stock from portfolio');
-        }
-        loadPortfolio();
+        updatePortfolioValues();
     } catch (error) {
         console.error(error);
     }

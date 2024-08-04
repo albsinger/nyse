@@ -19,7 +19,7 @@ To use this project, run the following commands from terminal:
 
 1. Navigate to the project directory: `cd backend`
 2. run `python3 app.py`
-3. open `127.0.0.1:5000` in your browser or `localhost:<port> as specified by your terminal
+3. open `127.0.0.1:5000` in your browser or `localhost:<port>` as specified by your terminal
 
 Note that the api key is hard coded and not in an env variable
 

@@ -34,7 +34,7 @@ def manage_portfolio():
     
     elif request.method == 'POST':
         data = request.json
-        if not data or 'symbol' not in data:
+        if not data or 'symbol' not in data or not data['symbol']:
             raise BadRequest('Symbol is required')
         
         symbol = data['symbol'].upper()
